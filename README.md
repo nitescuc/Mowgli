@@ -1,22 +1,26 @@
 # Mowgli
 
-<img src="./images/gforce.jpg" width="60%"/>
+<p align="center"><img src="./images/gforce.jpg" width="75%"/></p>
+<br>
+<h2 id="">
+  About
+</h2>
 
+This repo is forked of https://github.com/cloudn1ne/Mowgli to folllow his great job. \
+It should work on the Yardforce Classic 500 and LUV1000RI \
+*Please adjust the configuration in [board.h](./stm32/ros_usbnode/include/board.h)*
 
-## About
+The documentation on this fork is mostly not up to date - we will try to update it.
 
-This repo is forked of https://github.com/cloudn1ne/Mowgli to folllow his great job.
-It should work on the classic one and the Luv1000ri
+The current way to build a mowgli mower is to flash [ros_usbnode](./stm32/ros_usbnode/) to the mainboard and use [mowgli-docker](https://github.com/cedbossneo/mowgli-docker).
 
-Please change the different option in board.h
-
-
-## Updates
-
-see [Updates](UPDATES.md)
-
-
-## Safety
+<br>
+<br>
+<br>
+<h2 id="safety">
+  Safety
+</h2>
+<br>
 <table border=1>
    <tr>
       <td>
@@ -32,8 +36,17 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
       </td>
    </tr>
 </table>
-
-## Whats done ?
+<br>
+<br>
+<br>
+<h1 id="">
+  Every below this is not 100% up to date...
+</h1>
+<br>
+<h2 id="">
+  Whats done ?
+</h2>
+<br>
 
 - [Basic overview of the mainboard](./Kicad), [Datasheets](./Datasheets) for ICs
 - Motor Drivers for both Drive Motors and Blade Motor can be controlled
@@ -49,27 +62,47 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - Safety switches (Hall Sensors) for STOP button
 - Rain Sensor
 
-## TODO
+<br>
+<h2 id="todo">
+  TODO
+</h2>
+<br>
 
 Do the correct topics to remove the mowgli proxy in openmower ros and so be plug & play with openmower.
 
-## rosserial node
+<br>
+<h2 id="updates">
+  Updates
+</h2>
+
+see [Updates](UPDATES.md)
+
+<br>
+<h2 id="">
+  rosserial node
+</h2>
+<br>
 
 This is the software that needs to be compiled and flashed onto the STM32 on the Geforce Mainboard
 
-- [See here how to use the ROS serial node](stm32/ros_usbnode)
+- [See here how to use the ROS serial node](./stm32/ros_usbnode)
 
 
 ### in case a supported I2C IMU is connected to J18
 
-Currently  the [Pololu IMU 10v5](https://www.pololu.com/product/2739) and [WT901] are supported.
-Don't hesisate  to ask if you want use another IMU
+Currently supported IMUs:
+- [Pololu AltIMU 10v5](https://www.pololu.com/product/2739) other LSM6DS33 based should work too
+- [WT901]()
+- [MPU6050]()
+
+Don't hesisate to ask if you want use another IMU
 
 Check in board.h for the connected PIN, as I used PB3 for debug purposes, the pinning is different as the original repo.
 
 ## Published Topics
 
-## Services
+### Services
+
 - /mowgli/MowerControlSrv - enabled/disable blade
 - /mowgli/GetCfg - read SPI flash config var
 - /mowgli/SetCfg - write SPI flash config var
@@ -78,14 +111,10 @@ Check in board.h for the connected PIN, as I used PB3 for debug purposes, the pi
 - /mowgli/SetLed - enable LED (1-17), if the MSB is set (128), the bot will chirp too
 - /mowgli/ClrLed - disabled LED (1-17), if the MSB is set (128), the bot will chirp too
 
-## Subscribers
+### Subscribers
+
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)
 
 ## Serial Debugging
 
 [Serial Debug for ros_usbnode](stm32/ros_usbnode#serial_debug)
-
-
-
-
-

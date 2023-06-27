@@ -143,12 +143,12 @@ uint8_t WT901_TestDevice(void)
     val = SW_I2C_UTIL_Read(WT901_ADDRESS,(uint8_t)IICADDR);
     if (val == (WT901_ADDRESS)) /* should be 0x50 */
     {
-        DB_TRACE("   >> WT901 FOUND at I2C addr=0x%0x\r\n", WT901_ADDRESS);
+        DB_TRACE("    > [WT901] FOUND at I2C addr=0x%0x\r\n", WT901_ADDRESS);
         l_u8return = 1;
     }
     else
     {
-        DB_TRACE("   >> WT901 NOT FOUND at I2C addr=0x%0x\r\n", WT901_ADDRESS);
+        DB_TRACE("    > [WT901] - Error probing for (Gyro / Accelerometer) at I2C addr=0x%0x\r\n", WT901_ADDRESS);
         l_u8return = 0;
     }
  
@@ -195,21 +195,6 @@ void WT901_ReadGyroRaw(float *x, float *y, float *z)
     *x = (float)(int16_t)(gyro_xyz[1] << 8 | gyro_xyz[0]) * WT901_DPS_FACTOR * RAD_PER_G;
     *y = (float)(int16_t)(gyro_xyz[3] << 8 | gyro_xyz[2]) * WT901_DPS_FACTOR * RAD_PER_G;
     *z = (float)(int16_t)(gyro_xyz[5] << 8 | gyro_xyz[4]) * WT901_DPS_FACTOR * RAD_PER_G;    
-}
-
-/**
-  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
-  * units are tesla uncalibrated
-  */
-void WT901_ReadMagnetometerRaw(double *x, double *y, double *z)
-{
-    uint8_t mag_xyz[6];   // 2 bytes each
-
-    SW_I2C_UTIL_Read_Multi(WT901_ADDRESS, HX, 6, (uint8_t*)&mag_xyz);
-
-    *x = (float)(int16_t)(mag_xyz[1] << 8 | mag_xyz[0]) * WT901_T_FACTOR;
-    *y = (float)(int16_t)(mag_xyz[3] << 8 | mag_xyz[2]) * WT901_T_FACTOR;
-    *z = (float)(int16_t)(mag_xyz[5] << 8 | mag_xyz[4]) * WT901_T_FACTOR;     
 }
 
 /**

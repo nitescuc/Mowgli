@@ -148,11 +148,11 @@ void EmergencyController(void)
                 if (stop_button_yellow)
                 {
                     emergency_state |= 0b00010;
-                    debug_printf(" ## EMERGENCY ## - STOP BUTTON (yellow) triggered\r\n");
+                    debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - STOP BUTTON (\e[33myellow\e[0m) triggered\r\n");
                 }
                 if (stop_button_white) {
                     emergency_state |= 0b00100;
-                    debug_printf(" ## EMERGENCY ## - STOP BUTTON (white) triggered\r\n");
+                    debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - STOP BUTTON (\e[37m0mwhite\e[) triggered\r\n");
                 }
             }
         }
@@ -171,7 +171,7 @@ void EmergencyController(void)
         else if (now-both_wheels_lift_emergency_started>=BOTH_WHEELS_LIFT_EMERGENCY_MILLIS)
         {
             emergency_state |= 0b11000;
-            debug_printf(" ## EMERGENCY ## - WHEEL LIFT (red and blue) triggered\r\n");
+            debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - WHEEL LIFT (\e[31mred\e[0m and \e[34mblue\e[0m) triggered\r\n");
         }
     } else {
         both_wheels_lift_emergency_started=0;
@@ -185,7 +185,7 @@ void EmergencyController(void)
         else if (now-blue_wheel_lift_emergency_started>=ONE_WHEEL_LIFT_EMERGENCY_MILLIS)
         {
             emergency_state |= 0b01000;
-            debug_printf(" ## EMERGENCY ## - WHEEL LIFT (blue) triggered\r\n");
+            debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - WHEEL LIFT (\e[34mblue\e[0m) triggered\r\n");
         }
     } else {
         blue_wheel_lift_emergency_started=0;
@@ -199,7 +199,7 @@ void EmergencyController(void)
         else if (now-red_wheel_lift_emergency_started>=ONE_WHEEL_LIFT_EMERGENCY_MILLIS)
         {
             emergency_state |= 0b10000;
-            debug_printf(" ## EMERGENCY ## - WHEEL LIFT (red) triggered\r\n");
+            debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - WHEEL LIFT (\e[31mred\e[0m) triggered\r\n");
         }
     } else {
         red_wheel_lift_emergency_started=0;
@@ -215,7 +215,7 @@ void EmergencyController(void)
         {
             if (now - accelerometer_int_emergency_started >= TILT_EMERGENCY_MILLIS) {
                 emergency_state |= 0b100000;
-                debug_printf(" ## EMERGENCY ## - ACCELEROMETER TILT triggered\r\n");
+                debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - ACCELEROMETER TILT triggered\r\n");
             }
         }     
     }
@@ -234,7 +234,7 @@ void EmergencyController(void)
         {
             if (now - tilt_emergency_started >= TILT_EMERGENCY_MILLIS) {
                 emergency_state |= 0b100000;
-                debug_printf(" ## EMERGENCY ## - MECHANICAL TILT triggered\r\n");
+                debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - MECHANICAL TILT triggered\r\n");
             }
         }
     }
@@ -253,7 +253,7 @@ void EmergencyController(void)
         {
             if (now - play_button_started >= PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS) {
                 emergency_state = 0;
-                debug_printf(" ## EMERGENCY ## - manual reset\r\n");
+                debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - manual reset\r\n");
 				StatusLEDUpdate();
                 do_chirp=1;
             }

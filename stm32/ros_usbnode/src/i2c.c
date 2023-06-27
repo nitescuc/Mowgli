@@ -118,7 +118,7 @@ void I2C_ReadAccelerometer(float *x, float *y, float *z)
     }    
     else
     {
-        //debug_printf("WARNING: timeout while waiting for I2C onboard acceleration sensor");
+        //debug_printf("\e[01;31mWARNING: timeout while waiting for I2C onboard acceleration sensor !\e[0m");
         I2C_Init();
         *z = 0;
         *y = 0;
@@ -154,7 +154,7 @@ float I2C_ReadAccelerometerTemp(void)
     }
     else
     {
-        //debug_printf("WARNING: timeout while waiting for I2C onboard temp sensor");
+        //debug_printf("\e[01;31mWARNING: timeout while waiting for I2C onboard temp sensor !\e[0m");
         I2C_Init();
         return(0);
     }

@@ -1,5 +1,7 @@
 ### Install ROS Noetic on Ubuntu 20.04 Server on a Raspi
 
+> ***⚠ This guide is not up to date - use [mowgli-docker](https://github.com/cedbossneo/mowgli-docker) instead ⚠***
+
 ## Required Items
 
 * Raspi 4

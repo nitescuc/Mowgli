@@ -23,7 +23,6 @@
 #include "drivemotor.h"
 #include "blademotor.h"
 #include "ultrasonic_sensor.h"
-#include "spiflash.h"
 #include "stm32f1xx_hal.h"
 #include "ringbuffer.h"
 #include "ros.h"
@@ -48,10 +47,8 @@
 // IMU
 #include "imu/imu.h"
 #include "sensor_msgs/Imu.h"
-#include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/Range.h"
 #include "sensor_msgs/Temperature.h"
-#include "mowgli/magnetometer.h"
 
 // Flash Configuration Services
 #include "mowgli/SetCfg.h"
@@ -250,7 +247,8 @@ extern "C" void CommandHighLevelStatusMessageCb(const mower_msgs::HighLevelStatu
 		PANEL_Set_LED(PANEL_LED_6H,  PANEL_LED_OFF);
 		PANEL_Set_LED(PANEL_LED_8H,  PANEL_LED_OFF);
 		main_eOpenmowerStatus = OPENMOWER_STATUS_IDLE;
-		left_speed = right_speed = left_dir = right_dir = blade_on_off = 0;
+		left_dir = right_dir = 1;
+		left_speed = right_speed = blade_on_off = 0;
 	break;
 	}
 }
@@ -396,8 +394,8 @@ extern "C" void motors_handler()
 			{
 				blade_on_off = 0;
 			}
-			BLADEMOTOR_Set(blade_on_off);
 		}
+		BLADEMOTOR_Set(blade_on_off);
 	}
 }
 
@@ -510,7 +508,7 @@ extern "C" void broadcast_handler()
 		/**********************************/
 		/* Exernal Accelerometer 		  */
 		/**********************************/
-#ifdef IMU_ACCELERATION
+#ifdef EXTERNAL_IMU_ACCELERATION
 		// Linear acceleration
 		IMU_ReadAccelerometer(&imu_msg.linear_acceleration.x, &imu_msg.linear_acceleration.y, &imu_msg.linear_acceleration.z);
 		IMU_AccelerometerSetCovariance(imu_msg.linear_acceleration_covariance);
@@ -521,7 +519,7 @@ extern "C" void broadcast_handler()
 		/**********************************/
 		/* Exernal Gyro					  */
 		/**********************************/
-#ifdef IMU_ANGULAR
+#ifdef EXTERNAL_IMU_ANGULAR
 		// Angular velocity
 		IMU_ReadGyro(&imu_msg.angular_velocity.x, &imu_msg.angular_velocity.y, &imu_msg.angular_velocity.z);
 		IMU_GyroSetCovariance(imu_msg.angular_velocity_covariance);
@@ -593,105 +591,6 @@ extern "C" void broadcast_handler()
 		pubOMStatus.publish(&om_mower_status_msg);
 
 	} // if (NBT_handler(&status_nbt))
-}
-
-/*
- *  callback for mowgli/GetCfg Service
- */
-void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res)
-{
-	debug_printf("cbGetCfg:\r\n");
-	debug_printf(" name: %s\r\n", req.name);
-
-	res.data_length = SPIFLASH_ReadCfgValue(req.name, &res.type, svcCfgDataBuffer);
-
-	if (res.data_length > 0)
-	{
-		res.data = (uint8_t *)&svcCfgDataBuffer;
-		res.status = 1;
-	}
-	else
-	{
-		res.status = 0;
-	}
-}
-
-/*
- *  callback for mowgli/SetCfg Service
- */
-void cbSetCfg(const mowgli::SetCfgRequest &req, mowgli::SetCfgResponse &res)
-{
-	union
-	{
-		float f;
-		uint8_t b[4];
-	} float_val;
-
-	union
-	{
-		double d;
-		uint8_t b[8];
-	} double_val;
-	uint8_t i;
-
-	debug_printf("cbSetCfg:\r\n");
-	debug_printf(" type: %d\r\n", req.type);
-	debug_printf(" len: %d\r\n", req.data_length);
-	debug_printf(" name: %s\r\n", req.name);
-
-	if (req.type == 0) // TYPE_INT32 (0)
-	{
-		int32_t int32_val = (req.data[0]) + (req.data[1] << 8) + (req.data[2] << 16) + (req.data[3] << 24);
-		debug_printf("(int32) data: %d\r\n", int32_val);
-	}
-	if (req.type == 1) // TYPE_UINT32 (1)
-	{
-		uint32_t uint32_val = (req.data[0]) + (req.data[1] << 8) + (req.data[2] << 16) + (req.data[3] << 24);
-		debug_printf("(uint32) data: %d\r\n", uint32_val);
-	}
-	if (req.type == 2) // TYPE_FLOAT (2)
-	{
-		for (i = 0; i < 4; i++)
-		{
-			float_val.b[i] = req.data[i];
-		}
-		debug_printf("(float) data: %f\r\n", float_val.f);
-	}
-	if (req.type == 3) // TYPE_DOUBLE (3)
-	{
-		for (i = 0; i < 8; i++)
-		{
-			double_val.b[i] = req.data[i];
-		}
-		debug_printf("(double) data: %Lf\r\n", double_val.d);
-	}
-	if (req.type == 4) // TYPE_STRING (4)
-	{
-		debug_printf("(string) data: '");
-		for (i = 0; i < req.data_length; i++)
-		{
-			debug_printf("%c", req.data[i]);
-		}
-		debug_printf("'\r\n");
-	}
-	if (req.type == 5) // TYPE_BARRAY (5)
-	{
-		debug_printf("(byte array) data: '");
-		for (i = 0; i < req.data_length; i++)
-		{
-			debug_printf("0x%02x ", req.data[i]);
-		}
-		debug_printf("'\r\n");
-	}
-
-	// debug print data[] array
-	for (i = 0; i < req.data_length; i++)
-	{
-		debug_printf(" data[%d]: %d\r\n", i, req.data[i]);
-	}
-
-	SPIFLASH_WriteCfgValue(req.name, req.type, req.data_length, req.data);
-	res.status = 1;
 }
 
 /*

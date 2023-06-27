@@ -66,10 +66,7 @@ extern "C"
 #error "No board selection"
 #endif
 
-// define to support IMU Calibration (Mag) via https://github.com/pcdangio/ros-calibration_imu
-// #define SUPPORT_ROS_CALIBRATION_IMU           1
-
-// #define I_DONT_NEED_MY_FINGERS              1      // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
+//#define I_DONT_NEED_MY_FINGERS              1      // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
 /// nominal max charge current is 1.0 Amp
 #define MAX_CHARGE_CURRENT 1.0f
@@ -99,11 +96,17 @@ extern "C"
 #define PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS 2000
 #define IMU_ONBOARD_INCLINATION_THRESHOLD 0x38 // stock firmware uses 0x2C (way more allowed inclination)
 
+// Enable Emergency debugging
+//#define EMERGENCY_DEBUG
+
 // IMU configuration options
-// #define IMU_ONBOARD_ACCELERATION            0
-// #define IMU_ONBOARD_TEMP                    1
-#define IMU_ACCELERATION 1 // external IMU
-#define IMU_ANGULAR 1      // external IMU
+#define EXTERNAL_IMU_ACCELERATION  1
+#define EXTERNAL_IMU_ANGULAR       1
+
+// Force disable IMU to be detected - CURRENTLY THIS SETTING DOES NOT WORK!
+//#define DISABLE_ALTIMU10v5
+//#define DISABLE_MPU6050
+//#define DISABLE_WT901
 
 // we use J18 (Red 9 pin connector as Master Serial Port)
 #define MASTER_J18 1
@@ -152,16 +155,6 @@ extern "C"
 #define TILT_PIN GPIO_PIN_8
 #define TILT_PORT GPIOA
 #define TILT_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
-
-/* SPI3 Flash */
-#define FLASH_CLK_PIN GPIO_PIN_3  // GPIO B
-#define FLASH_MISO_PIN GPIO_PIN_4 // GPIO B
-#define FLASH_MOSI_PIN GPIO_PIN_5 // GPIO B
-#define FLASH_SPI_PORT GPIOB
-#define FLASH_SPI_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
-#define FLASH_nCS_PIN GPIO_PIN_15 // GPIO A
-#define FLASH_SPICS_PORT GPIOA
-#define FLASH_SPICS_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
 
 /* Wheel lift - (HIGH when set) */
 #define WHEEL_LIFT_BLUE_PIN GPIO_PIN_0

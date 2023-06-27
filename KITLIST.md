@@ -1,5 +1,7 @@
 # Kitlist Mowgli
 
+> ***⚠ This is currently not up to date ⚠***
+
 * Yardforce 500 Classic
 * Raspi 4 4GB or better + SD card
 * 1x ArduSimple - simpleRTK2B Budget (AS-RTK2B-F9P-L1L2-NH-02) - Rover (Bot)

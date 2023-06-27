@@ -96,9 +96,6 @@ extern openmower_status_e main_eOpenmowerStatus;
 extern uint16_t cnt_uart4_overrun;      // master
 extern uint16_t cnt_usart2_overrun;     // drive motors
 
-// SPI3 handle (used by spiflash.c)
-extern SPI_HandleTypeDef SPI3_Handle;
-
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -119,9 +116,6 @@ void TIM2_Init(void);
 void TIM3_Init(void);
 void MX_DMA_Init(void);
 void Emergency_Init(void);
-void SPI3_Init();
-void SPI3_DeInit();
-
 
 // UART Wrapper functions to hide HAL bullshit ...
 void MASTER_Transmit(uint8_t *buffer, uint8_t len);

@@ -42,33 +42,33 @@ uint8_t ALTIMU10v5_TestDevice(void)
     val = SW_I2C_UTIL_Read(DS33_ADDRESS, DS33_WHO_AM_I);
     if (val == DS33_WHO_ID)
     {
-        debug_printf("   >> [AltIMU-10v5] - LSM6DS33 (Gyro / Accelerometer) FOUND at I2C addr=0x%0x\r\n", DS33_ADDRESS);
+        debug_printf("    > [AltIMU-10v5] - LSM6DS33 (Gyro / Accelerometer) FOUND at I2C addr=0x%0x\r\n", DS33_ADDRESS);
     }
     else
     {
-        debug_printf("   >> [AltIMU-10v5] - Error probing for LSM6DS33 (Gyro / Accelerometer) at I2C addr=0x%0x\r\n", DS33_ADDRESS);
+        debug_printf("    > [AltIMU-10v5] - Error probing for LSM6DS33 (Gyro / Accelerometer) at I2C addr=0x%0x\r\n", DS33_ADDRESS);
         return(0);
     }
     /* test the LIS3MDL (magnetometer) */
     val = SW_I2C_UTIL_Read(LIS3MDL_ADDRESS, LIS3MDL_WHO_AM_I);
     if (val == LIS3MDL_WHO_ID)
     {
-        debug_printf("   >> [AltIMU-10v5] - LIS3MDL (Magnetometer) FOUND at I2C addr=0x%0x\r\n", LIS3MDL_ADDRESS);
+        debug_printf("    > [AltIMU-10v5] - LIS3MDL (Magnetometer) FOUND at I2C addr=0x%0x\r\n", LIS3MDL_ADDRESS);
     }
     else
     {
-        debug_printf("   >> [AltIMU-10v5] - Error probing for LIS3MDL (Magnetometer) at I2C addr=0x%0x\r\n", LIS3MDL_ADDRESS);
+        debug_printf("    > [AltIMU-10v5] - Error probing for LIS3MDL (Magnetometer) at I2C addr=0x%0x\r\n", LIS3MDL_ADDRESS);
         return(0);
     }
     /* test the LPS25H (barometer) */
     val = SW_I2C_UTIL_Read(LPS25H_ADDRESS, LPS25H_WHO_AM_I);
     if (val == LPS25H_WHO_ID)
     {
-        debug_printf("   >> [AltIMU-10v5] - LPS25H (Barometer) FOUND at I2C addr=0x%0x\r\n", LPS25H_ADDRESS);
+        debug_printf("    > [AltIMU-10v5] - LPS25H (Barometer) FOUND at I2C addr=0x%0x\r\n", LPS25H_ADDRESS);
     }
     else
     {
-        debug_printf("   >> [AltIMU-10v5] - Error probing for LPS25H (Barometer) at I2C addr=0x%0x\r\n", LPS25H_ADDRESS);
+        debug_printf("    > [AltIMU-10v5] - Error probing for LPS25H (Barometer) at I2C addr=0x%0x\r\n", LPS25H_ADDRESS);
         return(0);
     }
     // all tests passed
@@ -155,25 +155,6 @@ void ALTIMU10v5_ReadGyroRaw(float *x, float *y, float *z)
     *x = (int16_t)(gyro_xyz[1] << 8 | gyro_xyz[0]) * DS33_DPS_FACTOR * RAD_PER_G;
     *y = (int16_t)(gyro_xyz[3] << 8 | gyro_xyz[2]) * DS33_DPS_FACTOR * RAD_PER_G;
     *z = (int16_t)(gyro_xyz[5] << 8 | gyro_xyz[4]) * DS33_DPS_FACTOR * RAD_PER_G;    
-}
-
-/**
-  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
-  * units are tesla uncalibrated
-  */
-void ALTIMU10v5_ReadMagnetometerRaw(double *x, double *y, double *z)
-{
-    uint8_t mag_xyz[6];   // 2 bytes each
-
-    SW_I2C_UTIL_Read_Multi(LIS3MDL_ADDRESS, LIS3MDL_OUT_X_L, 6, (uint8_t*)&mag_xyz);
-
-    *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]);
-    *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]);
-    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]);    
-
-    *x = IMU_MAG_TO_T(*x);
-    *y = IMU_MAG_TO_T(*y);
-    *z = IMU_MAG_TO_T(*z);        
 }
 
 /**

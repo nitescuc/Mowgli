@@ -361,7 +361,7 @@ uint8_t CDC_Transmit(const void *Buf, uint32_t Len)
 
     if (result != USBD_OK) {
         s_txDropCounterHead++;
-        DB_TRACE("DROP :  %d \n",s_txDropCounterHead);
+        DB_TRACE("DROP :  %d \r\n",s_txDropCounterHead);
     }
 
     CDC_ResumeTransmit();

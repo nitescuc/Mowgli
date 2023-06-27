@@ -3,8 +3,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+__pycache__
 *.o
 raspi_remote_upload.py
 platformio.ini
 *.bin
-__pycache__

@@ -54,7 +54,7 @@ J18_Pin_2_VBAT
 Wire Wire Line
 	6250 3050 5200 3050
 Text HLabel 6250 3450 2    50   UnSpc ~ 0
-J18_Pin_6
+J18_Pin_6_5V
 Wire Wire Line
 	5200 3450 6250 3450
 Text Notes 7100 3300 0    50   Italic 10

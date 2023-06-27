@@ -20,9 +20,7 @@
 #include "imu/wt901.h"
 #include "i2c.h"
 #include "main.h"
-#include "spiflash.h"
 
-IMU_ReadMagnetometerRaw imuReadMagnetometerRaw=NULL;
 IMU_ReadAccelerometerRaw imuReadAccelerometerRaw=NULL;
 IMU_ReadGyroRaw imuReadGyroRaw=NULL;
 
@@ -53,16 +51,12 @@ float onboard_imu_cov_ay = 0.01;
 float onboard_imu_cov_az = 0.01;
 // ---------------------
 
-static int assertMagnetometer() {
-  return debug_assert(imuReadAccelerometerRaw!=NULL,"Usage of non installed magnetometer");
-}
-
 static int assertAccelerometer() {
-  return debug_assert(imuReadAccelerometerRaw!=NULL,"Usage of non installed accelerometer");
+  return debug_assert(imuReadAccelerometerRaw!=NULL,"Usage of non installed accelerometer\r\n");
 }
 
 static int assertGyro() {
-  return debug_assert(imuReadGyroRaw!=NULL,"Usage of non installed gryometer");
+  return debug_assert(imuReadGyroRaw!=NULL,"Usage of non installed gryometer\r\n");
 }
 
 int IMU_HasAccelerometer() {
@@ -71,56 +65,6 @@ int IMU_HasAccelerometer() {
 
 int IMU_HasGyro() {
   return imuReadGyroRaw!=NULL;
-}
-
-int IMU_HasMagnetometer() {
-  return imuReadMagnetometerRaw!=NULL;
-}
-
-/**
-  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
-  * 
-  * units are tesla uncalibrated
-  */ 
-void IMU_ReadMagnetometer(double *x, double *y, double *z)
-{  
-  if (assertMagnetometer()) return;
-  double imu_x, imu_y, imu_z;        
-  imuReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);        
-  IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
-}
-
-/**
-  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
-  * 
-  * units are tesla uncalibrated
-  */ 
-void IMU_ReadMagnetometerNormalized(double *x, double *y, double *z)
-{  
-  if (assertMagnetometer()) return;
-  VECTOR p;    
-  double imu_x, imu_y, imu_z;    
-  imuReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);    
-
-  IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, &p.x, &p.y, &p.x);
-  IMU_Normalize(&p);
-  *x = p.x;
-  *y = p.y;
-  *z = p.z;    
-}
-
-/**
-  * @brief Calculate heading from (calibrated) Magnetometer data
-  *   
-  */
-float IMU_MagHeading(void)
-{
-    float heading;
-		VECTOR p;
-
-		IMU_ReadMagnetometer(&p.x, &p.y, &p.z);
-		heading = (atan2(p.y, p.x) * 180) / M_PI;		
-    return(heading);
 }
 
 /**
@@ -207,8 +151,6 @@ float IMU_Onboard_ReadTemp(void)
   * @brief Calibrates IMU accelerometers and gyro by averaging and storing those values as calibration factors 
   * it expects that the bot is leveled and not moving
   * 
-  * magnetometer is not calibrated here, but uses the madgwick filter with bias values
-  * 
   */ 
 void IMU_CalibrateExternal()
 {
@@ -219,7 +161,7 @@ void IMU_CalibrateExternal()
     uint16_t i;
     
     
-    debug_printf("   >> External IMU Calibration started - make sure bot is level and standing still ...\r\n");    
+    debug_printf("    > External IMU Calibration started - make sure bot is level and standing still ...\r\n");    
     
     /************************************/
     /* calibrate external accelerometer */
@@ -240,7 +182,7 @@ void IMU_CalibrateExternal()
       imu_cal_ax = mean_x;
       imu_cal_ay = mean_y;
       imu_cal_az = 0;    // we dont want to calibrate Z because our IMU Sensor fusion stack expects gravity
-      debug_printf("   >> External IMU Calibration factors accelerometer [%f %f %f]\r\n", imu_cal_ax, imu_cal_ay, imu_cal_az);
+      debug_printf("    > External IMU Calibration factors accelerometer [%f %f %f]\r\n", imu_cal_ax, imu_cal_ay, imu_cal_az);
       stddev_x = stddev_y = stddev_z = 0;
       for (i=0; i<IMU_CAL_SAMPLES; i++)
       {
@@ -251,7 +193,7 @@ void IMU_CalibrateExternal()
       imu_cov_ax = stddev_x / IMU_CAL_SAMPLES;
       imu_cov_ay = stddev_y / IMU_CAL_SAMPLES;
       imu_cov_az = stddev_z / IMU_CAL_SAMPLES;
-      debug_printf("   >> External IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", imu_cov_ax, imu_cov_ay, imu_cov_az); 
+      debug_printf("    > External IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", imu_cov_ax, imu_cov_ay, imu_cov_az); 
     }
 
     /***************************/
@@ -273,7 +215,7 @@ void IMU_CalibrateExternal()
       imu_cal_gx = mean_x;
       imu_cal_gy = mean_y;
       imu_cal_gz = mean_z;
-      debug_printf("   >> External IMU Calibration factors gyro [%f %f %f]\r\n", imu_cal_gx, imu_cal_gy, imu_cal_gz);
+      debug_printf("    > External IMU Calibration factors gyro [%f %f %f]\r\n", imu_cal_gx, imu_cal_gy, imu_cal_gz);
       stddev_x = stddev_y = stddev_z = 0;
       for (i=0; i<IMU_CAL_SAMPLES; i++)
       {
@@ -284,34 +226,7 @@ void IMU_CalibrateExternal()
       imu_cov_gx = stddev_x / IMU_CAL_SAMPLES;
       imu_cov_gy = stddev_y / IMU_CAL_SAMPLES;
       imu_cov_gz = stddev_z / IMU_CAL_SAMPLES;
-      debug_printf("   >> External IMU Calibration gyro covariance diagonal [%f %f %f]\r\n", imu_cov_gx, imu_cov_gy, imu_cov_gz); 
-    }
-   
-    /***************************************************/
-    /* load magnetometer calibration (hard/soft iron)  */
-    /****************************************************/
-    if (imuReadMagnetometerRaw) {    
-      external_imu_mag_bias[0] = SPIFLASH_ReadDouble("mag_bias_x");
-      external_imu_mag_bias[1] = SPIFLASH_ReadDouble("mag_bias_y");
-      external_imu_mag_bias[2] = SPIFLASH_ReadDouble("mag_bias_z");
-      debug_printf("   >> External IMU Calibration magentometer biases (hard iron) [%f %f %f]\r\n", external_imu_mag_bias[0],  external_imu_mag_bias[1],  external_imu_mag_bias[2]); 
-
-      // ROW 0
-      external_imu_mag_cal_matrix[0][0] = SPIFLASH_ReadDouble("mag_dist_00");
-      external_imu_mag_cal_matrix[0][1] = SPIFLASH_ReadDouble("mag_dist_01");
-      external_imu_mag_cal_matrix[0][2] = SPIFLASH_ReadDouble("mag_dist_02");
-      // ROW 1
-      external_imu_mag_cal_matrix[1][0] = SPIFLASH_ReadDouble("mag_dist_10");
-      external_imu_mag_cal_matrix[1][1] = SPIFLASH_ReadDouble("mag_dist_11");
-      external_imu_mag_cal_matrix[1][2] = SPIFLASH_ReadDouble("mag_dist_12");
-      // ROW 2
-      external_imu_mag_cal_matrix[2][0] = SPIFLASH_ReadDouble("mag_dist_20");
-      external_imu_mag_cal_matrix[2][1] = SPIFLASH_ReadDouble("mag_dist_21");
-      external_imu_mag_cal_matrix[2][2] = SPIFLASH_ReadDouble("mag_dist_22");
-      debug_printf("   >> External IMU Calibration magentometer compensation (soft iron)\r\n");
-      debug_printf("       [ %f\t%f\t%f\r\n", external_imu_mag_cal_matrix[0][0], external_imu_mag_cal_matrix[0][1], external_imu_mag_cal_matrix[0][2]); 
-      debug_printf("         %f\t%f\t%f\r\n", external_imu_mag_cal_matrix[1][0], external_imu_mag_cal_matrix[1][1], external_imu_mag_cal_matrix[1][2]); 
-      debug_printf("         %f\t%f\t%f ]\r\n", external_imu_mag_cal_matrix[2][0], external_imu_mag_cal_matrix[2][1], external_imu_mag_cal_matrix[2][2]);
+      debug_printf("    > External IMU Calibration gyro covariance diagonal [%f %f %f]\r\n", imu_cov_gx, imu_cov_gy, imu_cov_gz); 
     }
 }
 
@@ -323,7 +238,7 @@ void IMU_CalibrateOnboard()
     float sum_x, sum_y, sum_z;
     uint16_t i;
 
-    debug_printf("   >> Onboard IMU Calibration started - make sure bot is level and standing still ...\r\n");  
+    debug_printf("    > Onboard IMU Calibration started - make sure bot is level and standing still ...\r\n");  
 
     /************************************/
     /* calibrate onboard accelerometer  */
@@ -343,7 +258,7 @@ void IMU_CalibrateOnboard()
     onboard_imu_cal_ax = mean_x;
     onboard_imu_cal_ay = mean_y;
     onboard_imu_cal_az = 0;    // we dont want to calibrate Z because our IMU Sensor fusion stack expects gravity
-    debug_printf("   >> Onboard IMU Calibration factors accelerometer [%f %f %f]\r\n", onboard_imu_cal_ax, onboard_imu_cal_ay, onboard_imu_cal_az);
+    debug_printf("    > Onboard IMU Calibration factors accelerometer [%f %f %f]\r\n", onboard_imu_cal_ax, onboard_imu_cal_ay, onboard_imu_cal_az);
     stddev_x = stddev_y = stddev_z = 0;
     for (i=0; i<IMU_CAL_SAMPLES; i++)
     {
@@ -354,7 +269,7 @@ void IMU_CalibrateOnboard()
     onboard_imu_cov_ax = stddev_x / IMU_CAL_SAMPLES;
     onboard_imu_cov_ay = stddev_y / IMU_CAL_SAMPLES;
     onboard_imu_cov_az = stddev_z / IMU_CAL_SAMPLES;
-    debug_printf("   >> Onboard IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", onboard_imu_cov_ax, onboard_imu_cov_ay, onboard_imu_cov_az); 
+    debug_printf("    > Onboard IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", onboard_imu_cov_ax, onboard_imu_cov_ay, onboard_imu_cov_az); 
 }
 
 void IMU_Normalize( VECTOR* p )
@@ -366,14 +281,12 @@ void IMU_Normalize( VECTOR* p )
 }
 
 void IMU_Init() {
-  imuReadMagnetometerRaw=NULL;
   imuReadAccelerometerRaw=NULL;
   imuReadGyroRaw=NULL;
 
 #ifndef DISABLE_ALTIMU10v5
   if (ALTIMU10v5_TestDevice()) {
     ALTIMU10v5_Init();
-    imuReadMagnetometerRaw=ALTIMU10v5_ReadMagnetometerRaw;
     imuReadAccelerometerRaw=ALTIMU10v5_ReadAccelerometerRaw;
     imuReadGyroRaw=ALTIMU10v5_ReadGyroRaw;
   }
@@ -382,7 +295,6 @@ void IMU_Init() {
 #ifndef DISABLE_WT901
   if ((!imuReadGyroRaw || !imuReadAccelerometerRaw) && WT901_TestDevice()) {
     WT901_Init();
-    imuReadMagnetometerRaw=WT901_ReadMagnetometerRaw;
     imuReadAccelerometerRaw=WT901_ReadAccelerometerRaw;
     imuReadGyroRaw=WT901_ReadGyroRaw;
   }

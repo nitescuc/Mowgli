@@ -37,7 +37,6 @@
 #include "adc.h"
 #include "charger.h"
 #include "soft_i2c.h"
-#include "spiflash.h"
 #include "i2c.h"
 #include "imu/imu.h"
 #include "usb_device.h"
@@ -124,21 +123,10 @@ int main(void)
   TF4_Init();
   DB_TRACE(" * 24V switched on\r\n");
   RAIN_Sensor_Init();
-  DB_TRACE(" * RAIN Sensor enable\r\n");
+  DB_TRACE(" * RAIN Sensor enabled\r\n");
   HALLSTOP_Sensor_Init();
   DB_TRACE(" * HALL Sensor enabled\r\n");
-  
-  if (SPIFLASH_TestDevice())
-  {
-    SPIFLASH_Config();
-    SPIFLASH_IncBootCounter();
-  }
-  else
-  {
-    DB_TRACE(" * SPIFLASH: unable to locate SPI Flash\r\n");
-  }
-  DB_TRACE(" * SPIFLASH initialized\r\n");
-  
+    
   I2C_Init();
   DB_TRACE(" * Hard I2C initialized\r\n");
   if (I2C_Acclerometer_TestDevice())
@@ -148,7 +136,7 @@ int main(void)
   else
   {
     chirp(3);
-    DB_TRACE(" * WARNING: initalization of onboard accelerometer for tilt protection failed !\r\n");
+    DB_TRACE("\e[01;31m * WARNING: initalization of onboard accelerometer for tilt protection failed !\e[0m\r\n");
   }
   DB_TRACE(" * Accelerometer (onboard/tilt safety) initialized\r\n");
   SW_I2C_Init();
@@ -196,16 +184,16 @@ int main(void)
   DB_TRACE(" * NBT Main timers initialized\r\n");
 
 #ifdef I_DONT_NEED_MY_FINGERS
-  DB_TRACE("\r\n");
+  DB_TRACE("\r\n\e[01;31m");
   DB_TRACE("=========================================================\r\n");
-  DB_TRACE(" EMERGENCY/SAFETY FEATURES ARE DISABLED IN board.h ! \r\n");
+  DB_TRACE("   EMERGENCY/SAFETY FEATURES ARE DISABLED IN board.h ! \r\n");
   DB_TRACE("=========================================================\r\n");
-  DB_TRACE("\r\n");
+  DB_TRACE("\e[0m\r\n");
 #endif
   // Initialize ROS
   init_ROS();
   DB_TRACE(" * ROS serial node initialized\r\n");
-  DB_TRACE("\r\n >>> entering main loop ...\r\n\r\n");
+  DB_TRACE("\r\n\e[01;36m >>> entering main loop ...\e[0m\r\n\r\n");
   // <chirp><chirp> means we are in the main loop
   chirp(2);
 
@@ -264,7 +252,7 @@ int main(void)
 
       // DB_TRACE(" temp : %.2f \n",blade_temperature);
       currentTick = HAL_GetTick();
-      DB_TRACE("t: %d \n", (currentTick - old_tick));
+      DB_TRACE(" Current ticktime: %d    \r", (currentTick - old_tick));
       old_tick = currentTick;
     }
 
@@ -727,7 +715,7 @@ void StatusLEDUpdate(void)
 {
   if (Emergency_State())
   {
-    DB_TRACE("Emergency !");
+    DB_TRACE("\e[2K\e[01;31m EMERGENCY WAS TRIGGERED !\e[0m\r\n");
     PANEL_Set_LED(PANEL_LED_LIFTED, PANEL_LED_FLASH_FAST);
   }
   else
@@ -882,7 +870,7 @@ static void WATCHDOG_vInit(void)
   if (HAL_IWDG_Init(&IwdgHandle) != HAL_OK)
   {
 #ifdef DB_ACTIVE
-    DB_TRACE(" IWDG init Error\n\r");
+    DB_TRACE(" IWDG init Error\r\n");
 #endif /* DB_ACTIVE */
   }
 
@@ -901,7 +889,7 @@ static void WATCHDOG_vInit(void)
   // if( HAL_WWDG_Init(&WwdgHandle) != HAL_OK )
   {
 #ifdef DB_ACTIVE
-    DB_TRACE(" WWDG init Error\n\r");
+    DB_TRACE(" WWDG init Error\r\n");
 #endif /* DB_ACTIVE */
   }
 } /* WATCHDOG_vInit() */
@@ -916,7 +904,7 @@ static void WATCHDOG_Refresh(void)
   if (HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK)
   {
 #ifdef DB_ACTIVE
-    DB_TRACE(" WWDG refresh error\n\r");
+    DB_TRACE(" WWDG refresh error\r\n");
 #endif /* DB_ACTIVE */
   }
 
@@ -925,7 +913,7 @@ static void WATCHDOG_Refresh(void)
   if (HAL_IWDG_Refresh(&IwdgHandle) != HAL_OK)
   {
 #ifdef DB_ACTIVE
-    DB_TRACE(" IWDG refresh error\n\r");
+    DB_TRACE(" IWDG refresh error\r\n");
 #endif /* DB_ACTIVE */
   }
 }

@@ -31,7 +31,7 @@ uint8_t MPU6050_TestDevice(void)
   /* Test who am I */
   val = SW_I2C_UTIL_Read(MPU6050_ADDRESS,MPU6050_WHO_AM_I);
   if (val== MPU6050_ADDRESS || val == 0x73) return 1;
-  debug_printf("   >> [MPU-6050] - Error probing for (Gyro / Accelerometer) at I2C addr=0x%0x %x\r\n", MPU6050_ADDRESS,val);
+  debug_printf("    > [MPU-6050] - Error probing for (Gyro / Accelerometer) at I2C addr=0x%0x %x\r\n", MPU6050_ADDRESS,val);
   return 0;
 }
 
@@ -44,7 +44,7 @@ void MPU6050_Init(void)
   // Sample rate divider 10 (=> 1 kHz/(9+1) = 100 Hz)
   SW_I2C_UTIL_WRITE(MPU6050_ADDRESS, MPU6050_SMPRT_DIV, 9);
   // We don't touch the default configuration: 250°/s, +/- 2g
-  debug_printf(" * MPU 6050 initialized\n");
+  debug_printf(" * MPU 6050 initialized\r\n");
 }
 
 /**

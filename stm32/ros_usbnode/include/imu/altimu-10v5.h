@@ -148,10 +148,4 @@ void ALTIMU10v5_ReadAccelerometerRaw(float *x, float *y, float *z);
   */
 void ALTIMU10v5_ReadGyroRaw(float *x, float *y, float *z);
 
-/**
-  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
-  * units are tesla uncalibrated
-  */
-void ALTIMU10v5_ReadMagnetometerRaw(double *x, double *y, double *z);
-
 #endif /* __ALTIMU_10V5_H */
