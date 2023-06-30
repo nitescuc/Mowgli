@@ -18,8 +18,8 @@ extern "C"
  * BOARD SELECTION
  * the specific board setting are set a the end of this file
  ********************************************************************************/
- #define BOARD_YARDFORCE500 1
-//#define BOARD_LUV1000RI 1
+// #define BOARD_YARDFORCE500 1
+#define BOARD_LUV1000RI 1
 
 /* definition type don't modify */
 #define DEBUG_TYPE_NONE 0
@@ -51,9 +51,9 @@ extern "C"
 #define PANEL_TYPE PANEL_TYPE_YARDFORCE_LUV1000RI
 #define BLADEMOTOR_LENGTH_RECEIVED_MSG 14
 
-#define DEBUG_TYPE 0
+#define DEBUG_TYPE DEBUG_TYPE_UART
 
-#define OPTION_ULTRASONIC 1
+#define OPTION_ULTRASONIC 0
 #define OPTION_BUMPER 0
 
 #define MAX_MPS 0.5		  // Allow maximum speed of 1.0 m/s
@@ -256,9 +256,9 @@ extern "C"
 
 // J18 has the SPI3 pins, as we dont use SPI3, we recycle them for I2C Bitbanging (for our Pololu ALtIMU-10v5)
 #ifdef SOFT_I2C_ENABLED
-#define SOFT_I2C_SCL_PIN GPIO_PIN_3
+#define SOFT_I2C_SCL_PIN GPIO_PIN_4
 #define SOFT_I2C_SCL_PORT GPIOB
-#define SOFT_I2C_SDA_PIN GPIO_PIN_4
+#define SOFT_I2C_SDA_PIN GPIO_PIN_5
 #define SOFT_I2C_SDA_PORT GPIOB
 
 #define SOFT_I2C_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE();
