@@ -24,6 +24,10 @@
 
 //#define EMERGENCY_DEBUG 1
 
+// should be moved to board.h
+#define BACK_TO_NORMAL_EMERGENCY_MILLIS 3000 // timeout to clear the emergency is all's back to normal
+//#define CHIRP_ON_EMERGENCY
+
 static uint8_t emergency_state = 0;
 static uint32_t stop_emergency_started = 0;
 static uint32_t blue_wheel_lift_emergency_started = 0;
@@ -32,6 +36,7 @@ static uint32_t both_wheels_lift_emergency_started = 0;
 static uint32_t tilt_emergency_started = 0;
 static uint32_t accelerometer_int_emergency_started = 0;
 static uint32_t play_button_started = 0;
+static uint32_t back_to_normal_started = 0;
 
 
 /**
@@ -263,10 +268,29 @@ void EmergencyController(void)
     {
         play_button_started = 0;
     }
+#ifdef CHIRP_ON_EMERGENCY
     /* play buzzer when emergency every 5s*/
     if(emergency_state  && ((HAL_GetTick()-l_u32timestamp) > 5000)){
         l_u32timestamp = HAL_GetTick();
         do_chirp=5;
+    }
+#endif
+    // are we back to normal ?
+    if (emergency_state && !(stop_button_yellow || stop_button_white || wheel_lift_blue || wheel_lift_red || accelerometer_int_triggered || tilt)) 
+    {
+        if (back_to_normal_started == 0) 
+        {
+            back_to_normal_started = now;
+        } else 
+        {
+            if (now - back_to_normal_started >= BACK_TO_NORMAL_EMERGENCY_MILLIS) 
+            {
+                emergency_state = 0;
+                back_to_normal_started = 0;
+                debug_printf(" \e[01;31m## EMERGENCY ##\e[0m - auto reset\r\n");
+				StatusLEDUpdate();
+            }
+        }
     }
 }
 
