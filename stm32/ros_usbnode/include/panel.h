@@ -60,6 +60,8 @@ typedef enum
     
     #define LED_STATE_SIZE 12       // model has 12-1 different leds to control ?   
     #define LED_CMD 0x508b
+    // compatibility with YF500
+    #define PANEL_LED_2H PANEL_LED_10H
 
 #elif PANEL_TYPE==PANEL_TYPE_YARDFORCE_500_CLASSIC   // Yardforce 500 CLASSIC
 
