@@ -15,9 +15,12 @@ static const char MOWERCONTROLSRV[] = "mower_msgs/MowerControlSrv";
     public:
       typedef uint8_t _mow_enabled_type;
       _mow_enabled_type mow_enabled;
+      typedef uint8_t _mow_direction_type;
+      _mow_direction_type mow_direction;
 
     MowerControlSrvRequest():
-      mow_enabled(0)
+      mow_enabled(0),
+      mow_direction(0)
     {
     }
 
@@ -26,6 +29,8 @@ static const char MOWERCONTROLSRV[] = "mower_msgs/MowerControlSrv";
       int offset = 0;
       *(outbuffer + offset + 0) = (this->mow_enabled >> (8 * 0)) & 0xFF;
       offset += sizeof(this->mow_enabled);
+      *(outbuffer + offset + 0) = (this->mow_direction >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->mow_direction);
       return offset;
     }
 
@@ -34,11 +39,13 @@ static const char MOWERCONTROLSRV[] = "mower_msgs/MowerControlSrv";
       int offset = 0;
       this->mow_enabled =  ((uint8_t) (*(inbuffer + offset)));
       offset += sizeof(this->mow_enabled);
+      this->mow_direction =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->mow_direction);
      return offset;
     }
 
     virtual const char * getType() override { return MOWERCONTROLSRV; };
-    virtual const char * getMD5() override { return "988e36b225a99f2ee6894313fe1d90a3"; };
+    virtual const char * getMD5() override { return "94d32eb6abf74150f0ffee85ec2e3056"; };
 
   };
 
