@@ -471,6 +471,9 @@ __STATIC_INLINE void drivemotor_prepareMsg(uint8_t left_speed, uint8_t right_spe
     {
         direction |= 0x80;
     }
+    if (left_speed == 0x00 && right_speed == 0x00) {
+        direction = 0x80 | 0x20;
+    }
 
     drivemotor_pu8RqstMessage[0] = 0x55;
     drivemotor_pu8RqstMessage[1] = 0xaa;
