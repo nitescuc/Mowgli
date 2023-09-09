@@ -22,8 +22,7 @@
 #include "ros/ros_custom/cpp_main.h"
 #include "board.h"
 #include "adc.h"
-
-#include "drivemotor.h"
+#include "drivemotor.h" 
 
 /******************************************************************************
  * Module Preprocessor Constants
@@ -229,60 +228,80 @@ void DRIVEMOTOR_App_10ms(void)
     {
     case DRIVEMOTOR_INIT_1:
 
-        HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t *)drivemotor_pcu8InitMsg, DRIVEMOTOR_LENGTH_INIT_MSG);
-        drivemotor_eState = DRIVEMOTOR_RUN;
-        debug_printf(" * Drive Motor Controller initialized\r\n");
-        break;
+            HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotor_pcu8InitMsg, DRIVEMOTOR_LENGTH_INIT_MSG);
+            drivemotor_eState = DRIVEMOTOR_RUN;
+            debug_printf(" * Drive Motor Controller initialized\r\n");        
+            break;
+        
+        case DRIVEMOTOR_RUN:
+            
+            /* prepare to receive the message before to launch the command */
+            HAL_UART_Receive_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)&drivemotor_psReceivedData, sizeof(DRIVEMOTORS_data_t));
 
-    case DRIVEMOTOR_RUN:
+            drivemotor_prepareMsg(left_speed_req, right_speed_req, left_dir_req, right_dir_req);
+            /* error State*/
+            if(drivemotor_psReceivedData.u8_error != 0){
+                drivemotor_prepareMsg(0,0,0,0);
+                DRIVEMOTOR_u32ErrorCnt++;
+            }            
 
-        /* prepare to receive the message before to launch the command */
-        HAL_UART_Receive_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t *)&drivemotor_psReceivedData, sizeof(DRIVEMOTORS_data_t));
+            /* hit an obstacle  and move forward!!!!!! stop and wait*/
+            /* todo add also accelerometer detection*/
+            if((HALLSTOP_Left_Sense() || HALLSTOP_Right_Sense()) \
+                && (left_dir_req || right_dir_req)  ){
+                
+                switch (main_eOpenmowerStatus){
+                    case OPENMOWER_STATUS_MOWING:
+                        /*hit something goes back */
+                        drivemotor_eState = DRIVEMOTOR_BACKWARD;
+                        l_u32Timestamp = HAL_GetTick();
+			        break;
+                    case OPENMOWER_STATUS_DOCKING:
+                        /* Get voltage from dock, stop the mower*/
+                        if(chargerInputVoltage > MIN_DOCKED_VOLTAGE){
+                            drivemotor_prepareMsg(0,0,0,0);
+                        }
+                        else{ /*hit something goes back */
+                            drivemotor_eState = DRIVEMOTOR_BACKWARD;
+                            l_u32Timestamp = HAL_GetTick();
+                        }
 
-        drivemotor_prepareMsg(left_speed_req, right_speed_req, left_dir_req, right_dir_req);
-        /* error State*/
-        if (drivemotor_psReceivedData.u8_error != 0)
-        {
-            drivemotor_prepareMsg(0, 0, 0, 0);
-            DRIVEMOTOR_u32ErrorCnt++;
-        }
-
-        /* todo add also accelerometer detection*/
-        if ((HALLSTOP_Left_Sense() || HALLSTOP_Right_Sense()) && (left_dir_req || right_dir_req))
-        {
-
-            switch (main_eOpenmowerStatus)
-            {
-            case OPENMOWER_STATUS_MOWING:
-                /*hit something goes back */
-                drivemotor_eState = DRIVEMOTOR_BACKWARD;
-                l_u32Timestamp = HAL_GetTick();
-                break;
-            case OPENMOWER_STATUS_DOCKING:
-                /* Get voltage from dock, stop the mower*/
-                if (chargerInputVoltage > MIN_DOCKED_VOLTAGE)
-                {
-                    drivemotor_prepareMsg(0, 0, 0, 0);
+			        break;
+                    case OPENMOWER_STATUS_UNDOCKING:
+                    case OPENMOWER_STATUS_IDLE:
+                    case OPENMOWER_STATUS_RECORD:
+                    default:
+                        /* nothing to do in these modes*/
+                    break;
                 }
-                else
-                { /*hit something goes back */
-                    drivemotor_eState = DRIVEMOTOR_BACKWARD;
-                    l_u32Timestamp = HAL_GetTick();
-                }
-
-                break;
-            case OPENMOWER_STATUS_UNDOCKING:
-            case OPENMOWER_STATUS_IDLE:
-            case OPENMOWER_STATUS_RECORD:
-            default:
-                /* nothing to do in these modes*/
-                break;
             }
-        }
 
-        HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t *)drivemotor_pu8RqstMessage, DRIVEMOTOR_LENGTH_RQST_MSG);
+            HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotor_pu8RqstMessage, DRIVEMOTOR_LENGTH_RQST_MSG);
 
-        break;
+            break;
+
+        case DRIVEMOTOR_BACKWARD:
+            /* prepare to receive the message before to launch the command */
+            HAL_UART_Receive_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)&drivemotor_psReceivedData, sizeof(DRIVEMOTORS_data_t));
+            drivemotor_prepareMsg(100,100,0,0); /* set to -0.33m/s  */
+            HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotor_pu8RqstMessage, DRIVEMOTOR_LENGTH_RQST_MSG);
+
+            if( (HAL_GetTick() - l_u32Timestamp) > 2000){
+                drivemotor_eState = DRIVEMOTOR_WAIT;
+                l_u32Timestamp = HAL_GetTick();
+            }
+
+            break;
+
+        case DRIVEMOTOR_WAIT:
+            /* prepare to receive the message before to launch the command */
+            HAL_UART_Receive_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)&drivemotor_psReceivedData, sizeof(DRIVEMOTORS_data_t));
+            drivemotor_prepareMsg(0,0,0,0);
+            HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotor_pu8RqstMessage, DRIVEMOTOR_LENGTH_RQST_MSG);
+
+            if( (HAL_GetTick() - l_u32Timestamp) > 1000){
+                drivemotor_eState = DRIVEMOTOR_RUN;
+            }
 
     case DRIVEMOTOR_BACKWARD:
         /* prepare to receive the message before to launch the command */

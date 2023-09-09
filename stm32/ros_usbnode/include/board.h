@@ -54,7 +54,7 @@ extern "C"
 #define DEBUG_TYPE DEBUG_TYPE_NONE
 
 #define OPTION_ULTRASONIC 1
-#define OPTION_BUMPER 0
+#define OPTION_BUMPER 1
 
 #define MAX_MPS 0.5		  // Allow maximum speed of 1.0 m/s
 #define PWM_PER_MPS 300.0 // PWM value of 300 means 1 m/s bot speed so we divide by 4 to have correct robot speed but still progressive speed
@@ -69,7 +69,7 @@ extern "C"
 //#define I_DONT_NEED_MY_FINGERS              1      // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
 /// nominal max charge current is 1.0 Amp
-#define MAX_CHARGE_CURRENT 1.0f
+#define MAX_CHARGE_CURRENT 1.5f
 /// limite voltag when switching in 150mA mode
 #define LIMIT_VOLTAGE_150MA 28.0f
 /// Max voltage allowed 29.4
