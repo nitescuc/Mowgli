@@ -133,12 +133,12 @@ ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 
 #if OPTION_ULTRASONIC == 1
 ros::Publisher pubLeftUltrasonic("ultrasonic/left", &ultrasonic_left_msg);
-ros::Publisher pubRightUltrasonic("ultrasonic/right", &ultrasonic_left_msg);
+ros::Publisher pubRightUltrasonic("ultrasonic/right", &ultrasonic_right_msg);
 #endif
 
 #if OPTION_BUMPER == 1
 ros::Publisher pubLeftBumper("bumper/left", &bumper_left_msg);
-ros::Publisher pubRightBumper("bumper/right", &bumper_left_msg);
+ros::Publisher pubRightBumper("bumper/right", &bumper_right_msg);
 #endif
 
 /*
@@ -624,15 +624,25 @@ extern "C" void spinOnce()
 
 		bumper_left_msg.radiation_type = 0;
 		bumper_left_msg.field_of_view = 1.64; /* 90°*/
-		bumper_left_msg.min_range = 0.0;
+		bumper_left_msg.min_range = 0.10;
 		bumper_left_msg.max_range = 0.20;
-		bumper_left_msg.range = HALLSTOP_Left_Sense() * 0.05;
+		//bumper_left_msg.range = HALLSTOP_Left_Sense() * 0.05;
+		if (HALLSTOP_Left_Sense() > 0) {
+			bumper_left_msg.range = 0.15;
+		} else {
+			bumper_left_msg.range = 0;
+		}
 
 		bumper_right_msg.radiation_type = 0;
 		bumper_right_msg.field_of_view = 1.64; /* 90°*/
-		bumper_right_msg.min_range = 0.0;
+		bumper_right_msg.min_range = 0.10;
 		bumper_right_msg.max_range = 0.20;
-		bumper_right_msg.range = HALLSTOP_Right_Sense() * 0.05;
+		//bumper_right_msg.range = HALLSTOP_Right_Sense() * 0.05;
+		if (HALLSTOP_Right_Sense() > 0) {
+			bumper_right_msg.range = 0.15;
+		} else {
+			bumper_right_msg.range = 0;
+		}
 
 		pubLeftBumper.publish(&bumper_left_msg);
 		pubRightBumper.publish(&bumper_right_msg);

@@ -54,7 +54,7 @@ extern "C"
 #define DEBUG_TYPE DEBUG_TYPE_NONE
 
 #define OPTION_ULTRASONIC 1
-#define OPTION_BUMPER 0
+#define OPTION_BUMPER 1
 
 #define MAX_MPS 0.5		  // Allow maximum speed of 1.0 m/s
 #define PWM_PER_MPS 300.0 // PWM value of 300 means 1 m/s bot speed so we divide by 4 to have correct robot speed but still progressive speed
