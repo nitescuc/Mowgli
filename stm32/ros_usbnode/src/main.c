@@ -113,7 +113,9 @@ int main(void)
   DB_TRACE(" * LED initialized\r\n");
   TIM2_Init();
   ADC2_Init();
-  // Perimeter_vInit();
+  #ifdef OPTION_PERIMETER
+  Perimeter_vInit();
+  #endif
   DB_TRACE(" * ADC1 initialized\r\n");
   TIM3_Init();
   HAL_TIM_PWM_Start(&TIM3_Handle, TIM_CHANNEL_4);
@@ -198,7 +200,7 @@ int main(void)
   chirp(2);
 
   WATCHDOG_vInit();
-
+  
   while (1)
   {
     chatter_handler();
@@ -208,7 +210,9 @@ int main(void)
     broadcast_handler();
 
     DRIVEMOTOR_App_Rx();
-    // Perimeter_vApp();
+    #ifdef OPTION_PERIMETER
+    Perimeter_vApp();
+    #endif
 
     if (NBT_handler(&main_chargecontroller_nbt))
     {
@@ -244,16 +248,19 @@ int main(void)
 
     if (NBT_handler(&main_blademotor_nbt))
     {
-
-      uint32_t currentTick;
-      static uint32_t old_tick;
-
       BLADEMOTOR_App();
 
-      // DB_TRACE(" temp : %.2f \n",blade_temperature);
-      currentTick = HAL_GetTick();
-      DB_TRACE(" Current ticktime: %d    \r", (currentTick - old_tick));
-      old_tick = currentTick;
+#ifdef OPTION_PERIMETER
+      if (!Perimeter_UsesDebug())
+#endif
+      {
+        uint32_t currentTick;
+        static uint32_t old_tick;
+        DB_TRACE(" temp : %.2f \n",blade_temperature);
+        currentTick = HAL_GetTick();
+        DB_TRACE(" Current ticktime: %d    \r", (currentTick - old_tick));
+        old_tick = currentTick;
+      }
     }
 
     if (NBT_handler(&main_buzzer_nbt))
