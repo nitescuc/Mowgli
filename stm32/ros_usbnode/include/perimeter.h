@@ -15,13 +15,14 @@
 
 #ifdef OPTION_PERIMETER
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 /******************************************************************************
 * Includes
 *******************************************************************************/
 #include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 /******************************************************************************
 * Preprocessor Constants
 *******************************************************************************/
@@ -49,7 +50,6 @@ typedef enum {
 *******************************************************************************/
 extern ADC_HandleTypeDef ADC_Handle;
 
-extern float smoothMag[COIL_OFF];
 /******************************************************************************
 * PUBLIC Function Prototypes
 *******************************************************************************/
@@ -66,6 +66,12 @@ void Perimeter_ListenOn(uint8_t sig);
  * @brief Is the perimeter signal currently detected?
  */
 int Perimeter_IsActive(void);
+
+/**
+ * @brief Read the current signal status of the perimeter.
+ * @return There was enough data to read.
+ */
+int Perimeter_UpdateMsg(float *left,float *center,float *right);
 
 /**
  * @brief Are perimeter values printed to the debug console?

@@ -526,6 +526,11 @@ extern "C" void broadcast_handler()
 		imu_msg.header.stamp = nh.now();
 		pubIMU.publish(&imu_msg);
 
+#ifdef OPTION_PERIMETER
+		if (Perimeter_UpdateMsg(&om_perimeter_msg.left,&om_perimeter_msg.center,&om_perimeter_msg.right)) {
+			pubPerimeter.publish(&om_perimeter_msg);
+		}
+#endif
 	} // if (NBT_handler(&imu_nbt))
 
 	if (NBT_handler(&status_nbt))
@@ -586,14 +591,6 @@ extern "C" void broadcast_handler()
 
 		pubOMStatus.publish(&om_mower_status_msg);
 
-#ifdef OPTION_PERIMETER
-		if (Perimeter_IsActive()) {
-			om_perimeter_msg.left = smoothMag[COIL_LEFT];
-			om_perimeter_msg.center = smoothMag[COIL_MIDDLE];
-			om_perimeter_msg.right = smoothMag[COIL_RIGHT];
-			pubPerimeter.publish(&om_perimeter_msg);
-		}
-#endif
 	}
 	// if (NBT_handler(&status_nbt))
 }

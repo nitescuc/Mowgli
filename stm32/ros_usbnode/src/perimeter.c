@@ -25,6 +25,7 @@
 *******************************************************************************/
 #define PERIMETER_NBPTS 1284 /* 12 ms / 9.333 µs */
 #define PERIMETER_OVERSAMPLING 3
+#define PERIMETER_AVERAGE_N 3
 
 /******************************************************************************
 * Module Preprocessor Macros
@@ -53,7 +54,8 @@ static const int32_t *sigcode=NULL;
 static int sigcode_length;
 static int print_pos=-1;
 
-float smoothMag[COIL_OFF] = {0.0,0.0,0.0};
+float coilSigSum[COIL_OFF] = {0.0,0.0,0.0};
+int coilSigN[COIL_OFF]={0,0,0};
 
 perimeter_CoilNumber_e idxCoil = COIL_LEFT;
 
@@ -160,23 +162,27 @@ void Perimeter_vApp(void){
     }
     perimeter_bFlagIT = false;
 
-    smoothMag[idxCoil] = 0.7*smoothMag[idxCoil] + 0.3 * corrFilter();
-    idxCoil ++;
-    if(idxCoil == COIL_OFF){
-      idxCoil = COIL_LEFT;
+    if (print_pos<0) {
+      coilSigSum[idxCoil]+=corrFilter();
+      coilSigN[idxCoil]++;
+      idxCoil ++;
+      if(idxCoil == COIL_OFF){
+        idxCoil = COIL_LEFT;
+      }
+      perimeter_SetCoil(idxCoil);
     }
-
-    perimeter_SetCoil(idxCoil);
     HAL_ADC_Start_DMA(&ADC_Handle,(uint32_t*)&pu16_PerimeterADC_buffer[0],PERIMETER_NBPTS);
     __HAL_DMA_DISABLE_IT(&hdma_adc,DMA_IT_HT);
-
   }
 }
 
 void Perimeter_ListenOn(uint8_t sig) {
   const int32_t *oldsigcode=sigcode;
-  switch (sig & 0x7f) {
+  switch (sig) {
     case 1:
+    case 0x80:
+    case 0x81:
+    case 0x82:
       sigcode=sigcode1;
       sigcode_length=SIGCODE1_LENGTH;
       break;
@@ -192,8 +198,15 @@ void Perimeter_ListenOn(uint8_t sig) {
     if (!oldsigcode) {
       idxCoil=COIL_LEFT;
       perimeter_SetCoil(idxCoil);
+      for (int i=0; i<COIL_OFF; i++) {
+        coilSigSum[i]=coilSigN[i]=0;
+      }
       HAL_ADC_Start_DMA(&ADC_Handle,(uint32_t*)&pu16_PerimeterADC_buffer[0],PERIMETER_NBPTS);
       __HAL_DMA_DISABLE_IT(&hdma_adc,DMA_IT_HT);
+    }
+    if (sig & 0x80) {
+      idxCoil=sig & 3;
+      perimeter_SetCoil(idxCoil);
     }
   } else {
     print_pos=-1;
@@ -202,6 +215,19 @@ void Perimeter_ListenOn(uint8_t sig) {
 
 int Perimeter_IsActive(void) {
   return sigcode!=NULL;
+}
+
+int Perimeter_UpdateMsg(float *left,float *center,float *right) {
+  if (!sigcode || coilSigN[COIL_LEFT]<PERIMETER_AVERAGE_N
+      || coilSigN[COIL_MIDDLE]<PERIMETER_AVERAGE_N  || coilSigN[COIL_RIGHT]<PERIMETER_AVERAGE_N)
+  {
+    return 0;
+  }
+	*left=coilSigSum[COIL_LEFT]/coilSigN[COIL_LEFT];
+	*center=coilSigSum[COIL_MIDDLE]/coilSigN[COIL_MIDDLE];
+	*right=coilSigSum[COIL_RIGHT]/coilSigN[COIL_RIGHT];
+  for (int i=0; i<COIL_OFF; i++) coilSigSum[i]=coilSigN[i]=0;
+  return 1;
 }
 
 int Perimeter_UsesDebug(void) {
