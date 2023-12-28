@@ -42,3 +42,7 @@ In order to activate perimeter usage add the following setting to your `mower_co
 ## Usage
 
 The aproach to the perimeter wire has to be recorded. Therefore you have to open OpenMower's **Area recording**. Navigate the mower to a point about three meters away from the perimeter wire. This point should be inside a Navigation or Mowing Area and it should be located outside the perimeter wire. Now start **Record Docking**. Navigate into a direction, that will cross the perimeter wire, but stop about 0.5 meters in front of the perimeter and mark this point by clicking **Record docking** again. Done!
+
+## Troubleshooting
+
+This [little helper](../oscilloscope/README.md) may be used to visualize the perimeter signal.
