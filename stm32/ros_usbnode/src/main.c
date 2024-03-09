@@ -263,7 +263,7 @@ int main(void)
       {
         TIM3_Handle.Instance->CCR4 = 10; // chirp on
         TIM4_Handle.Instance->CCR3 = 10; // chirp on
-        do_chirp = 0;
+        do_chirp--;
         do_chirp_duration_counter = 0;
       }
       if (do_chirp_duration_counter == 1)

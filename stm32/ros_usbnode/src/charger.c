@@ -3,7 +3,7 @@
 * Filename              :   charger.c
 * Author                :   Nekraus
 * Origin Date           :   01/04/2023
-* Version               :   1.0.0
+* Version               :   1.1.0
 
 *****************************************************************************/
 /** \file charger.c

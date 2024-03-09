@@ -67,6 +67,8 @@ const uint8_t blademotor_pcu8InitMsg[BLADEMOTOR_LENGTH_INIT_MSG] =  { 0x55, 0xaa
 * Function Prototypes
 *******************************************************************************/
 
+void blademotor_prepareMsg(void);
+
 /******************************************************************************
 *  Public Functions
 *******************************************************************************/
@@ -207,7 +209,7 @@ void  BLADEMOTOR_App(void){
 /// @brief control blade motor (there is no speed control for this motor)
 /// @param on_off 1 to turn on, 0 to turn off
 void BLADEMOTOR_Set(uint8_t on_off)
-{       
+{    
     blademotor_u8OnOff = on_off;
     if (on_off)
     {
@@ -246,3 +248,18 @@ void BLADEMOTOR_ReceiveIT(void)
 /******************************************************************************
 *  Private Functions
 *******************************************************************************/
+
+/// @brief control blade motor (there is no speed control for this motor)
+void blademotor_prepareMsg(void)
+{    
+    if (blademotor_u8OnOff)
+    {
+        blademotor_pu8RqstMessage[5] = 0x80; /* change speed Motor */
+        blademotor_pu8RqstMessage[6] = 0x22; /* change CRC */
+    }
+    else
+    {
+        blademotor_pu8RqstMessage[5] = 0x00; /* change speed Motor */
+        blademotor_pu8RqstMessage[6] = 0xa2; /* change CRC */
+    }
+}

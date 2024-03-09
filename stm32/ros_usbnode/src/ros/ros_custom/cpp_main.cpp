@@ -73,8 +73,11 @@
 uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
 
+
+
 ros::Time last_cmd_vel(0, 0);
-uint32_t last_cmd_vel_age; // age of last velocity command
+ros::Time cmd_vel_old(0, 0);
+uint32_t last_cmd_vel_age;	 // age of last velocity command
 
 // drive motor control
 static uint8_t left_speed = 0;
@@ -116,8 +119,9 @@ mowgli::status status_msg;
 // om status message
 mower_msgs::Status om_mower_status_msg;
 xbot_msgs::WheelTick wheel_ticks_msg;
-mower_msgs::HighLevelStatus high_level_status;
+
 float clamp(float d, float min, float max);
+
 /*
  * PUBLISHERS
  */
@@ -261,15 +265,106 @@ extern "C" void CommandHighLevelStatusMessageCb(const mower_msgs::HighLevelStatu
 		left_speed = right_speed = blade_on_off = 0;
 		break;
 	}
+
+	/* led on in function of the current state of openmower*/
+	switch (msg.state & 0b11111) {
+	case mower_msgs::HighLevelStatus::HIGH_LEVEL_STATE_AUTONOMOUS:
+		PANEL_Set_LED(PANEL_LED_S1, PANEL_LED_ON);
+		PANEL_Set_LED(PANEL_LED_S2, PANEL_LED_OFF);
+		
+		switch ((msg.state>>mower_msgs::HighLevelStatus::SUBSTATE_SHIFT)){
+			case mower_msgs::HighLevelStatus::SUBSTATE_1:
+				PANEL_Set_LED(PANEL_LED_4H,  PANEL_LED_ON);
+				PANEL_Set_LED(PANEL_LED_6H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_8H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_10H, PANEL_LED_OFF);
+				main_eOpenmowerStatus = OPENMOWER_STATUS_MOWING;
+			break;
+			case mower_msgs::HighLevelStatus::SUBSTATE_2:
+				PANEL_Set_LED(PANEL_LED_4H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_6H,  PANEL_LED_ON);
+				PANEL_Set_LED(PANEL_LED_8H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_10H, PANEL_LED_OFF);
+				main_eOpenmowerStatus = OPENMOWER_STATUS_DOCKING;
+			break;
+			case mower_msgs::HighLevelStatus::SUBSTATE_3:
+				PANEL_Set_LED(PANEL_LED_4H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_6H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_8H,  PANEL_LED_ON);
+				PANEL_Set_LED(PANEL_LED_10H, PANEL_LED_OFF);
+				main_eOpenmowerStatus = OPENMOWER_STATUS_UNDOCKING;
+			break;
+			case mower_msgs::HighLevelStatus::SUBSTATE_4:
+			default:
+				PANEL_Set_LED(PANEL_LED_4H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_6H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_8H,  PANEL_LED_OFF);
+				PANEL_Set_LED(PANEL_LED_10H, PANEL_LED_OFF);
+				/* unknow status */
+				main_eOpenmowerStatus = OPENMOWER_STATUS_MAX_STATUS;
+			break;
+		} 
+	break;
+
+	case mower_msgs::HighLevelStatus::HIGH_LEVEL_STATE_RECORDING:
+		PANEL_Set_LED(PANEL_LED_S1, PANEL_LED_OFF);
+		PANEL_Set_LED(PANEL_LED_S2, PANEL_LED_ON);
+		main_eOpenmowerStatus = OPENMOWER_STATUS_RECORD;
+	break;
+
+	case mower_msgs::HighLevelStatus::HIGH_LEVEL_STATE_IDLE:
+	default:
+		PANEL_Set_LED(PANEL_LED_S1, PANEL_LED_OFF);
+		PANEL_Set_LED(PANEL_LED_S2, PANEL_LED_OFF);
+		PANEL_Set_LED(PANEL_LED_4H,  PANEL_LED_OFF);
+		PANEL_Set_LED(PANEL_LED_6H,  PANEL_LED_OFF);
+		PANEL_Set_LED(PANEL_LED_8H,  PANEL_LED_OFF);
+		PANEL_Set_LED(PANEL_LED_10H, PANEL_LED_OFF);
+		main_eOpenmowerStatus = OPENMOWER_STATUS_IDLE;
+	break;
+	}
 }
 /*
  * receive and parse cmd_vel messages
  * actual driving (updating drivemotors) is done in the drivemotors_nbt
  */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist &msg)
-{	
+{
+	
+	double l_fSeconddt;
 	double l_fVx;
 	double l_fVz;
+	static double l_foldVx;
+	static double l_foldVz;
+
+	last_cmd_vel = nh.now();
+
+	l_fSeconddt = (last_cmd_vel.toSec()) - (cmd_vel_old.toSec());
+	cmd_vel_old = last_cmd_vel;
+
+
+	/* Limit max speed */
+	l_fVx = clamp(msg.linear.x, -0.5, 0.5);
+	l_fVz = clamp(msg.angular.z , -3.2, 3.2);
+
+	/* Limit acceleration */
+	double dv_min = -0.5 * l_fSeconddt;
+    double dv_max = 0.1 * l_fSeconddt;
+
+    double dv = clamp(l_fVx - l_foldVx, dv_min, dv_max);
+
+    l_fVx = l_foldVx + dv;
+
+	dv_min = -1.0 * l_fSeconddt;
+    dv_max = 1.0 * l_fSeconddt;
+
+    dv = clamp(l_fVz - l_foldVz, dv_min, dv_max);
+
+    //l_fVz = l_foldVz + dv;
+	
+	/* keep in memory the valid cmd*/
+	l_foldVx = l_fVx;
+	l_foldVz = l_fVz;
 
 	last_cmd_vel = nh.now();
 	if (main_eOpenmowerStatus == OPENMOWER_STATUS_IDLE)
@@ -316,9 +411,9 @@ extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist &msg)
 	//	debug_printf("left_mps: %f (%c)  right_mps: %f (%c)\r\n", left_mps, left_dir?'F':'R', right_mps, right_dir?'F':'R');
 }
 
+
 uint8_t CDC_DataReceivedHandler(const uint8_t *Buf, uint32_t len)
 {
-
 	ringbuffer_put(&rb, Buf, len);
 	return CDC_RX_DATA_HANDLED;
 }
@@ -533,7 +628,7 @@ extern "C" void broadcast_handler()
 		status_msg.emergency_stopbutton_triggered = Emergency_StopButtonYellow() || Emergency_StopButtonWhite();
 		/* not used anymore*/
 		status_msg.left_encoder_ticks = DRIVEMOTOR_u32ErrorCnt;
-		status_msg.right_encoder_ticks = 0;
+		status_msg.right_encoder_ticks = BLADEMOTOR_u8Error;
 		status_msg.v_charge = charge_voltage;
 		status_msg.i_charge = current;
 		status_msg.v_battery = battery_voltage;
@@ -699,8 +794,7 @@ extern "C" void init_ROS()
 	NBT_init(&ros_nbt, 10);
 }
 
-float clamp(float d, float min, float max)
-{
-	const float t = d < min ? min : d;
-	return t > max ? max : t;
+float clamp(float d, float min, float max) {
+  const float t = d < min ? min : d;
+  return t > max ? max : t;
 }
