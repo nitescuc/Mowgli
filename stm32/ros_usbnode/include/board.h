@@ -47,6 +47,7 @@ extern "C"
 
 #define OPTION_ULTRASONIC 0
 #define OPTION_BUMPER 0
+#define OPTION_PERIMETER 0
 #elif defined(BOARD_LUV1000RI)
 #define PANEL_TYPE PANEL_TYPE_YARDFORCE_LUV1000RI
 #define BLADEMOTOR_LENGTH_RECEIVED_MSG 14
@@ -55,6 +56,7 @@ extern "C"
 
 #define OPTION_ULTRASONIC 1
 #define OPTION_BUMPER 1
+#define OPTION_PERIMETER 1
 
 #define MAX_MPS 0.5		  // Allow maximum speed of 1.0 m/s
 #define PWM_PER_MPS 300.0 // PWM value of 300 means 1 m/s bot speed so we divide by 4 to have correct robot speed but still progressive speed

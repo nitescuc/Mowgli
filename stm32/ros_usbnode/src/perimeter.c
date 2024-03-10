@@ -13,8 +13,9 @@
 /******************************************************************************
 * Includes
 *******************************************************************************/
+#include "board.h"
 #include "main.h"
-#include "perimeter.h" 
+#include "perimeter.h"
 #include <math.h>
 #include <stdlib.h>
 
