@@ -259,10 +259,12 @@ void ADC_input(void)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
+#ifdef OPTION_PERIMETER
     if (hadc == &ADC_Handle)
     {
         PERIMETER_vITHandle();
     }
+#endif
 
     if (hadc == &ADC2_Handle)
     {

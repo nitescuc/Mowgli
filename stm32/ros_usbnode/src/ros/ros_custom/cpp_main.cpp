@@ -65,6 +65,12 @@
 #include "mower_msgs/HighLevelControlSrv.h"
 #include "mower_msgs/HighLevelStatus.h"
 
+#ifdef OPTION_PERIMETER
+#  include "perimeter.h"
+#  include "mower_msgs/Perimeter.h"
+#  include "mower_msgs/PerimeterControlSrv.h"
+#endif
+
 #define ODOM_NBT_TIME_MS 100
 #define IMU_NBT_TIME_MS 20
 #define MOTORS_NBT_TIME_MS 20
@@ -84,8 +90,6 @@ static uint8_t right_dir = 0;
 
 // blade motor control
 static uint8_t blade_on_off = 0;
-
-static uint8_t svcCfgDataBuffer[256];
 
 ros::NodeHandle nh;
 
@@ -115,6 +119,7 @@ sensor_msgs::Imu imu_onboard_msg;
 mowgli::status status_msg;
 // om status message
 mower_msgs::Status om_mower_status_msg;
+
 xbot_msgs::WheelTick wheel_ticks_msg;
 mower_msgs::HighLevelStatus high_level_status;
 float clamp(float d, float min, float max);
@@ -162,6 +167,14 @@ ros::ServiceServer<mower_msgs::MowerControlSrvRequest, mower_msgs::MowerControlS
 ros::ServiceServer<mower_msgs::EmergencyStopSrvRequest, mower_msgs::EmergencyStopSrvResponse> svcSetEmergency("mower_service/emergency", cbSetEmergency);
 ros::ServiceClient<mower_msgs::HighLevelControlSrvRequest, mower_msgs::HighLevelControlSrvResponse> svcHighLevelControl("mower_service/high_level_control");
 ros::ServiceServer<std_srvs::Empty::Request, std_srvs::Empty::Response> svcReboot("mowgli/Reboot", cbReboot);
+
+#ifdef OPTION_PERIMETER
+// om perimeter signal
+mower_msgs::Perimeter om_perimeter_msg;
+void cbPerimeterListen(const mower_msgs::PerimeterControlSrvRequest &req, mower_msgs::PerimeterControlSrvResponse &res);
+ros::Publisher pubPerimeter("mower/perimeter",&om_perimeter_msg);
+ros::ServiceServer<mower_msgs::PerimeterControlSrvRequest, mower_msgs::PerimeterControlSrvResponse> svcPerimeterListen("mower_service/perimeter_listen",cbPerimeterListen);
+#endif
 
 /*
  * NON BLOCKING TIMERS
@@ -482,9 +495,9 @@ extern "C" void broadcast_handler()
 		imu_msg.header.frame_id = "imu";
 
 		// No Orientation in IMU message
-		imu_msg.orientation.x = 0;
-		imu_msg.orientation.y = 0;
-		imu_msg.orientation.z = 0;
+		imu_msg.orientation.x =
+		imu_msg.orientation.y = 
+		imu_msg.orientation.z = 
 		imu_msg.orientation.w = 0;
 		imu_msg.orientation_covariance[0] = -1;
 
@@ -513,6 +526,11 @@ extern "C" void broadcast_handler()
 		imu_msg.header.stamp = nh.now();
 		pubIMU.publish(&imu_msg);
 
+#ifdef OPTION_PERIMETER
+		if (Perimeter_UpdateMsg(&om_perimeter_msg.left,&om_perimeter_msg.center,&om_perimeter_msg.right)) {
+			pubPerimeter.publish(&om_perimeter_msg);
+		}
+#endif
 	} // if (NBT_handler(&imu_nbt))
 
 	if (NBT_handler(&status_nbt))
@@ -573,7 +591,8 @@ extern "C" void broadcast_handler()
 
 		pubOMStatus.publish(&om_mower_status_msg);
 
-	} // if (NBT_handler(&status_nbt))
+	}
+	// if (NBT_handler(&status_nbt))
 }
 
 /*
@@ -598,6 +617,12 @@ void cbSetEmergency(const mower_msgs::EmergencyStopSrvRequest &req, mower_msgs::
 {
 	Emergency_SetState(req.emergency);
 }
+
+#ifdef OPTION_PERIMETER
+void cbPerimeterListen(const mower_msgs::PerimeterControlSrvRequest &req, mower_msgs::PerimeterControlSrvResponse &res) {
+	Perimeter_ListenOn(req.listenOn);
+}
+#endif
 
 /*
  *  callback for mowgli/Reboot Service
@@ -689,6 +714,11 @@ extern "C" void init_ROS()
 	nh.advertiseService(svcSetEmergency);
 	nh.advertiseService(svcReboot);
 	nh.serviceClient(svcHighLevelControl);
+
+#ifdef OPTION_PERIMETER
+	nh.advertise(pubPerimeter);
+	nh.advertiseService(svcPerimeterListen);
+#endif
 
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
