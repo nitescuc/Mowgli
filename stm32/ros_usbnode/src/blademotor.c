@@ -108,7 +108,7 @@ void BLADEMOTOR_Init(void)
     
     // RX
     GPIO_InitStruct.Pin = BLADEMOTOR_USART_RX_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_INPUT;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(BLADEMOTOR_USART_RX_PORT, &GPIO_InitStruct);
@@ -116,6 +116,7 @@ void BLADEMOTOR_Init(void)
     // TX
     GPIO_InitStruct.Pin = BLADEMOTOR_USART_TX_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(BLADEMOTOR_USART_TX_PORT, &GPIO_InitStruct);    
 
