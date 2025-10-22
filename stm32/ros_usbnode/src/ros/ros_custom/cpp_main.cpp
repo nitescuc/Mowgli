@@ -85,7 +85,7 @@ static uint8_t right_dir = 0;
 // blade motor control
 static uint8_t blade_on_off = 0;
 
-static uint8_t svcCfgDataBuffer[256];
+/* svcCfgDataBuffer was unused in this tree; removed to avoid analyzer warnings */
 
 ros::NodeHandle nh;
 
@@ -511,7 +511,9 @@ extern "C" void broadcast_handler()
 		imu_msg.angular_velocity_covariance[0] = -1;
 #endif
 		imu_msg.header.stamp = nh.now();
-		pubIMU.publish(&imu_msg);
+#if (defined(EXTERNAL_IMU_ACCELERATION) || defined(EXTERNAL_IMU_ANGULAR))
+	pubIMU.publish(&imu_msg);
+#endif
 
 	} // if (NBT_handler(&imu_nbt))
 

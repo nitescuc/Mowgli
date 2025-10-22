@@ -7,6 +7,8 @@
 //#define GPIO_SW_I2C1_SDA           GPIOB
 //#define GPIO_SW_I2C1_SDA_PIN   GPIO_Pin_14
 
+#include <stdint.h>
+
 #define SW_I2C1		1
 #define SW_I2C2		2
 #define SW_I2C3		3
@@ -46,5 +48,8 @@ uint8_t SW_I2C_Check_SlaveAddr(uint8_t IICID);
 uint8_t SW_I2C_UTIL_WRITE(uint8_t IICID, uint8_t regaddr, uint8_t data);
 uint8_t SW_I2C_UTIL_Read(uint8_t IICID, uint8_t regaddr);
 uint8_t SW_I2C_UTIL_Read_Multi(uint8_t IICID, uint8_t regaddr, uint8_t rcnt, uint8_t (*pdata));
+
+/* micro-delay helper used across soft i2c and drivers */
+void TIMER__Wait_us(uint32_t nCount);
 
 #endif  /* __SOFT_I2C_H */

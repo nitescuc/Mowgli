@@ -69,7 +69,7 @@ extern "C"
 //#define I_DONT_NEED_MY_FINGERS              1      // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
 /// nominal max charge current is 1.0 Amp
-#define MAX_CHARGE_CURRENT 1.0f
+#define MAX_CHARGE_CURRENT 1.5f
 /// limite voltag when switching in 150mA mode
 #define LIMIT_VOLTAGE_150MA 28.0f
 /// Max voltage allowed 29.4
