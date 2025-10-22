@@ -18,6 +18,7 @@
 #include "imu/altimu-10v5.h"
 #include "imu/mpu6050.h"
 #include "imu/wt901.h"
+#include "imu/icm45686.h"
 #include "i2c.h"
 #include "main.h"
 
@@ -305,6 +306,14 @@ void IMU_Init() {
     MPU6050_Init();
     imuReadAccelerometerRaw=MPU6050_ReadAccelerometerRaw;
     imuReadGyroRaw=MPU6050_ReadGyroRaw;
+  }
+#endif
+
+#ifndef DISABLE_ICM45686
+  if ((!imuReadGyroRaw || !imuReadAccelerometerRaw) && ICM45686_TestDevice()) {
+    ICM45686_Init();
+    imuReadAccelerometerRaw=ICM45686_ReadAccelerometerRaw;
+    imuReadGyroRaw=ICM45686_ReadGyroRaw;
   }
 #endif
 
